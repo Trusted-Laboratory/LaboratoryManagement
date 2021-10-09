@@ -3,13 +3,17 @@ package com.lyun.laboratorymanagement.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lyun.laboratorymanagement.entity.News;
+import com.lyun.laboratorymanagement.entity.User;
 import com.lyun.laboratorymanagement.service.NewsService;
+import com.lyun.laboratorymanagement.service.UserService;
+import com.lyun.laboratorymanagement.utils.CookieUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.sql.Date;
+import java.sql.Time;
 import java.util.List;
 
 @RequestMapping("/news")
@@ -18,6 +22,9 @@ public class NewsApi {
 
     @Autowired
     private NewsService newsService;
+
+    @Autowired
+    private UserService userService;
 
     @RequestMapping("/num")
     public JSONObject newsNum(){
@@ -51,6 +58,43 @@ public class NewsApi {
             res.put("news",news);
         }
         return res;
+    }
+
+    @RequestMapping(value = "/add",method = RequestMethod.POST)
+    public JSONObject addNews(@RequestBody JSONObject data, HttpServletResponse response, HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        if (token == null){
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result,","not login");
+            return notLogin;
+        }
+        if (userService.getPower(User.Token.tokens.get(token)) < 4){
+            JSONObject permissionDenied = new JSONObject();
+            permissionDenied.put("suc",false);
+            permissionDenied.put("result","Permission denied");
+            return permissionDenied;
+        }
+        String title = data.getString("title");
+        String content = data.getString("content");
+        if (title != null && content != null){
+            Date date = new Date(System.currentTimeMillis());
+            Time time = new Time(System.currentTimeMillis());
+            News news = new News();
+            news.setContent(content);
+            news.setTitle(title);
+            news.setDate(date);
+            news.setTitle(title);
+            newsService.addNews(news);
+            JSONObject suc = new JSONObject();
+            suc.put("suc",true);
+            return suc;
+        }else {
+            JSONObject missingParameter = new JSONObject();
+            missingParameter.put("suc",false);
+            missingParameter.put("result","Missing parameter");
+            return missingParameter;
+        }
     }
 
 }

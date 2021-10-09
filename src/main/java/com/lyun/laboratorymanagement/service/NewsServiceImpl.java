@@ -25,4 +25,9 @@ public class NewsServiceImpl implements NewsService{
     public List<News> findAll() {
         return newsDao.findAll();
     }
+
+    @Override
+    public void addNews(News news) {
+        newsDao.addNews(news);
+    }
 }

@@ -2,4 +2,5 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lyun.laboratorymanagement.dao.NewsDao">
     <select id="findAll" resultType="News">SELECT * FROM news</select>
+    <select id="addNews">INSERT INTO news (title, date, time, content) VALUES (#{news.title}, #{news.date}, #{news.time}, #{news.content})</select>
 </mapper>
