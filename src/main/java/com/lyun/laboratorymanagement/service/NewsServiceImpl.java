@@ -30,4 +30,20 @@ public class NewsServiceImpl implements NewsService{
     public void addNews(News news) {
         newsDao.addNews(news);
     }
+
+    @Override
+    public boolean changeNews(Integer id, String title, String content) {
+        News news = newsDao.getById(id);
+        if (news == null){
+            return false;
+        }else {
+            newsDao.updateNews(id,title,content);
+            return true;
+        }
+    }
+
+    @Override
+    public void deleteNews(int id) {
+        newsDao.deleteNews(id);
+    }
 }

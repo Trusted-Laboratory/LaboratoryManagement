@@ -85,6 +85,7 @@ public class NewsApi {
             news.setTitle(title);
             news.setDate(date);
             news.setTitle(title);
+            news.setTime(time);
             newsService.addNews(news);
             JSONObject suc = new JSONObject();
             suc.put("suc",true);
@@ -95,6 +96,74 @@ public class NewsApi {
             missingParameter.put("result","Missing parameter");
             return missingParameter;
         }
+    }
+
+    @RequestMapping(value = "/change",method = RequestMethod.POST)
+    public JSONObject changeNews(@RequestBody JSONObject data,HttpServletResponse response, HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        if (token == null){
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result,","not login");
+            return notLogin;
+        }
+        if (User.Token.tokens.get(token) == null || userService.getPower(User.Token.tokens.get(token)) < 4){
+            JSONObject permissionDenied = new JSONObject();
+            permissionDenied.put("suc",false);
+            permissionDenied.put("result","Permission denied");
+            return permissionDenied;
+        }
+        String title = data.getString("title");
+        String content = data.getString("content");
+        Integer id = data.getInteger("id");
+        if (title != null && content != null && id != null){
+            if (newsService.changeNews(id,title,content)){
+                JSONObject suc = new JSONObject();
+                suc.put("suc",true);
+                return suc;
+            }else {
+                JSONObject nonExistent = new JSONObject();
+                nonExistent.put("suc",false);
+                nonExistent.put("result","non-existent");
+                return nonExistent;
+            }
+
+        }else {
+            JSONObject missingParameter = new JSONObject();
+            missingParameter.put("suc",false);
+            missingParameter.put("result","Missing parameter");
+            return missingParameter;
+        }
+    }
+
+    @RequestMapping(value = "/delete",method = RequestMethod.POST)
+    public JSONObject deleteNews(@RequestBody JSONObject data,HttpServletResponse response, HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        if (token == null){
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result,","not login");
+            return notLogin;
+        }
+        if (User.Token.tokens.get(token) == null || userService.getPower(User.Token.tokens.get(token)) < 4){
+            JSONObject permissionDenied = new JSONObject();
+            permissionDenied.put("suc",false);
+            permissionDenied.put("result","Permission denied");
+            return permissionDenied;
+        }
+        Integer id = data.getInteger("id");
+        if (id != null){
+            newsService.deleteNews(id);
+            JSONObject suc = new JSONObject();
+            suc.put("suc",true);
+            return suc;
+        }else {
+            JSONObject missingParameter = new JSONObject();
+            missingParameter.put("suc",false);
+            missingParameter.put("result","Missing parameter");
+            return missingParameter;
+        }
+
     }
 
 }

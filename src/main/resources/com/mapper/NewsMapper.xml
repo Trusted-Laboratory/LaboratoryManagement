@@ -3,4 +3,7 @@
 <mapper namespace="com.lyun.laboratorymanagement.dao.NewsDao">
     <select id="findAll" resultType="News">SELECT * FROM news</select>
     <select id="addNews">INSERT INTO news (title, date, time, content) VALUES (#{news.title}, #{news.date}, #{news.time}, #{news.content})</select>
+    <update id="updateNews">UPDATE news SET title = #{title}, content = #{content} WHERE news_id = #{id}</update>
+    <select id="getById" resultType="News">SELECT * FROM news WHERE news_id=#{id}</select>
+    <delete id="deleteNews">DELETE FROM news WHERE news_id=#{id}</delete>
 </mapper>
