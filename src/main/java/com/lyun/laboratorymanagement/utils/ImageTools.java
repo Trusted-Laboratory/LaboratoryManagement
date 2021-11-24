@@ -15,4 +15,12 @@ public class ImageTools {
         ImageIO.write(image,"jpg",stream);
         return Base64.getEncoder().encodeToString(stream.toByteArray());
     }
+
+    @SneakyThrows
+    public static BufferedImage base64ToImg(String base64){
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] bytes1 = decoder.decode(base64);
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes1);
+        return ImageIO.read(bais);
+    }
 }

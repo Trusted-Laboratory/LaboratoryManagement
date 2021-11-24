@@ -3,9 +3,13 @@ package com.lyun.laboratorymanagement.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lyun.laboratorymanagement.entity.Member;
+import com.lyun.laboratorymanagement.entity.User;
 import com.lyun.laboratorymanagement.service.MemberService;
+import com.lyun.laboratorymanagement.service.UserService;
+import com.lyun.laboratorymanagement.utils.CookieUtils;
 import com.lyun.laboratorymanagement.utils.ImageTools;
 import com.lyun.laboratorymanagement.utils.PathTools;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +28,8 @@ public class MemberApi {
 
     @Autowired
     private MemberService memberService;
+    @Autowired
+    private UserService userService;
 
 
     @RequestMapping(value = "/num",method = RequestMethod.GET)
@@ -46,23 +52,38 @@ public class MemberApi {
 
     @RequestMapping(value = "/new",method = RequestMethod.POST)
     public JSONObject newMember(@RequestBody JSONObject data, HttpServletResponse response, HttpServletRequest request){
-        String name = data.getString("name");
-        String sex = data.getString("sex");
-        String brief_introduction = data.getString("brief_introduction");
-        if (name == null || sex == null || brief_introduction == null){
-            JSONObject fail = new JSONObject();
-            fail.put("success",false);
-            return fail;
+        String token = CookieUtils.getCookie(request,"token");
+        if (token != null && User.Token.tokens.containsKey(token)){
+            if (userService.getPower(User.Token.tokens.get(token)) < 5){
+                JSONObject lowPower = new JSONObject();
+                lowPower.put("suc",false);
+                lowPower.put("result","Permission denied");
+                return lowPower;
+            }
+            String name = data.getString("name");
+            String sex = data.getString("sex");
+            String brief_introduction = data.getString("brief_introduction");
+            if (name == null || sex == null || brief_introduction == null){
+                JSONObject fail = new JSONObject();
+                fail.put("suc",false);
+                return fail;
+            }else {
+                Member member = new Member();
+                member.setName(name);
+                member.setSex(sex);
+                member.setBrief_introduction(brief_introduction);
+                memberService.addMember(member);
+                JSONObject suc = new JSONObject();
+                suc.put("suc",true);
+                return suc;
+            }
         }else {
-            Member member = new Member();
-            member.setName(name);
-            member.setSex(sex);
-            member.setBrief_introduction(brief_introduction);
-            memberService.addMember(member);
-            JSONObject suc = new JSONObject();
-            suc.put("success",true);
-            return suc;
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result","not login");
+            return notLogin;
         }
+
     }
 
     @RequestMapping(value = "/photo",method = RequestMethod.GET)
@@ -81,8 +102,50 @@ public class MemberApi {
             return suc;
         }else {
             JSONObject fail = new JSONObject();
-            fail.put("success",false);
+            fail.put("suc",false);
             return fail;
+        }
+    }
+
+    @SneakyThrows
+    @RequestMapping(value = "/change/photo",method = RequestMethod.POST)
+    public JSONObject changeMemberPhoto(@RequestBody JSONObject data, HttpServletResponse response, HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        if (token != null && User.Token.tokens.containsKey(token)){
+            if (userService.getPower(User.Token.tokens.get(token)) < 5){
+                JSONObject lowPower = new JSONObject();
+                lowPower.put("suc",false);
+                lowPower.put("result","Permission denied");
+                return lowPower;
+            }
+            String image = data.getString("img");
+            String name = data.getString("name");
+            if (image != null && name != null){
+                Member member = memberService.findByName(name);
+                if (member != null){
+                    File photo = new File(PathTools.getRunPath() + "/member_photo/" + name + ".jpg");
+                    BufferedImage img = ImageTools.base64ToImg(image);
+                    ImageIO.write(img,"jpg",photo);
+                    JSONObject suc = new JSONObject();
+                    suc.put("suc",true);
+                    return suc;
+                }else {
+                    JSONObject notExist = new JSONObject();
+                    notExist.put("suc",false);
+                    notExist.put("result","Member not exist");
+                    return notExist;
+                }
+            }else {
+                JSONObject missingParameter = new JSONObject();
+                missingParameter.put("suc",false);
+                missingParameter.put("result","Missing parameter");
+                return missingParameter;
+            }
+        }else {
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result","not login");
+            return notLogin;
         }
     }
 }

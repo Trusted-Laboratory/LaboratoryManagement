@@ -3,4 +3,5 @@
 <mapper namespace="com.lyun.laboratorymanagement.dao.MemberDao">
     <select id="findAll" resultType="Member">SELECT * FROM member</select>
     <insert id="addMember">INSERT INTO member (name, sex, brief_introduction) VALUES (#{name}, #{sex}, #{brief_introduction})</insert>
+    <select id="findByName" resultType="Member">SELECT * FROM member WHERE name=#{name}</select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.lyun.laboratorymanagement.service;
 
 import com.lyun.laboratorymanagement.dao.UserDao;
+import com.lyun.laboratorymanagement.entity.Member;
 import com.lyun.laboratorymanagement.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,4 +38,34 @@ public class UserServiceImpl implements UserService{
         User user = userDao.getUserByName(username);
         return user.getPower();
     }
+
+    @Override
+    public void delUser(int id) {
+        userDao.delUser(id);
+    }
+
+    @Override
+    public User getUserByName(String username) {
+        return userDao.getUserByName(username);
+    }
+
+    @Override
+    public void changeUser(String username, String password, Integer power,String realName) {
+        User user = userDao.getUserByName(realName);
+        if (username == null){
+            username = user.getUsername();
+        }
+        if (password == null){
+            password = user.getPassword();
+        }else {
+            password = DigestUtils.md5DigestAsHex(password.getBytes(StandardCharsets.UTF_8));
+        }
+        if (power == null){
+            power = user.getPower();
+        }
+        userDao.changeUser(username,password,power,realName);
+    }
+
+
+
 }

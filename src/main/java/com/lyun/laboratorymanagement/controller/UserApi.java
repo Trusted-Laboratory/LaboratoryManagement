@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.lyun.laboratorymanagement.entity.User;
 import com.lyun.laboratorymanagement.service.UserService;
 import com.lyun.laboratorymanagement.utils.CookieUtils;
+import javafx.scene.control.TableRow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,5 +67,70 @@ public class UserApi {
             notLogin.put("result","not login");
             return notLogin;
         }
+    }
+
+    @RequestMapping(value = "/del",method = RequestMethod.POST)
+    public JSONObject delUser(@RequestBody JSONObject data, HttpServletResponse response,HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        Integer id = data.getInteger("id");
+        if (token != null && User.Token.tokens.containsKey(token)){
+            if (id == null){
+                JSONObject missingParameter = new JSONObject();
+                missingParameter.put("suc",false);
+                missingParameter.put("result","Missing parameter");
+                return missingParameter;
+            }
+            int power = userService.getPower(User.Token.tokens.get(token));
+            if (power < 5){
+                JSONObject lowPower = new JSONObject();
+                lowPower.put("suc",false);
+                lowPower.put("result","Permission denied");
+                return lowPower;
+            }
+            userService.delUser(id);
+            JSONObject suc = new JSONObject();
+            suc.put("suc", true);
+            return suc;
+        }else {
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result","not login");
+            return notLogin;
+        }
+    }
+
+
+    @RequestMapping(value = "/change",method = RequestMethod.POST)
+    public JSONObject changeUserInf(@RequestBody JSONObject data, HttpServletResponse response,HttpServletRequest request){
+        String token = CookieUtils.getCookie(request,"token");
+        if (token != null && User.Token.tokens.containsKey(token)){
+            String realName = User.Token.tokens.get(token);
+            String username = data.getString("username");
+            String password = data.getString("password");
+            Integer power = data.getInteger("power");
+            if (username != null && password != null && power != null){
+                if (power > userService.getPower(realName)){
+                    JSONObject lowPower = new JSONObject();
+                    lowPower.put("suc",false);
+                    lowPower.put("result","Permission denied");
+                    return lowPower;
+                }
+                userService.changeUser(username,password,power,realName);
+                JSONObject suc = new JSONObject();
+                suc.put("suc",true);
+                return suc;
+            }else {
+                JSONObject missingParameter = new JSONObject();
+                missingParameter.put("suc",false);
+                missingParameter.put("result","Missing parameter");
+                return missingParameter;
+            }
+        }else {
+            JSONObject notLogin = new JSONObject();
+            notLogin.put("suc",false);
+            notLogin.put("result","not login");
+            return notLogin;
+        }
+
     }
 }

@@ -30,4 +30,9 @@ public class MemberServiceImpl implements MemberService{
         memberDao.addMember(member);
     }
 
+    @Override
+    public Member findByName(String name) {
+        return memberDao.findByName(name);
+    }
+
 }

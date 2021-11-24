@@ -8,4 +8,5 @@ public interface MemberService {
     void save(Member member);
     List<Member> findAll();
     void addMember(Member member);
+    Member findByName(String name);
 }
